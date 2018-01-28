@@ -1,0 +1,29 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+  tasks:
+  - name: install the epel rpm
+    yum: name=http://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/e/epel-release-7-11.noarch.rpm state=present
+  - name: install essential packages
+    yum: name={{ item }} state=latest
+    with_items:
+    - ansible
+    - docker 
+    - git
+    - gettext 
+    - nodejs
+    - gcc-c++
+    - bzip2 
+    - npm
+    - python-docker-py
+  - name: Start the Docker
+    service: name=docker state=started  
+  - name: pull the latest code from git
+    git:
+      repo: 'https://github.com/ansible/awx.git'
+      dest: /opt/
+  - name: Go to the AWX
+    command: chdir=/opt/installer/ {{ item }}
+    with_items:
+    - sudo ansible-playbook -i inventory install.yml
